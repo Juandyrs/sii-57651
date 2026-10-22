@@ -4,7 +4,9 @@
 #include <fstream>
 #include "Mundo.h"
 #include "glut.h"
-
+#include <fcntl.h>  
+#include <unistd.h>  
+#include <sys/types.h> 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -130,11 +132,16 @@ void CMundo::OnTimer(int value)
 	jugador2.Rebota(esfera);
 	if(fondo_izq.Rebota(esfera))
 	{
-		esfera.centro.x=0;
+	 	esfera.centro.x=0;
 		esfera.centro.y=rand()/(float)RAND_MAX;
 		esfera.velocidad.x=2+2*rand()/(float)RAND_MAX;
 		esfera.velocidad.y=2+2*rand()/(float)RAND_MAX;
 		puntos2++;
+		
+		char cad[1024];
+		sprintf(cad,"El Jugador 2 acaba de anotar punto, lleva un total de %d puntos \n", puntos2 );
+		write(fifo, cad, strlen(cad));
+		
 	}
 
 	if(fondo_dcho.Rebota(esfera))
@@ -144,8 +151,13 @@ void CMundo::OnTimer(int value)
 		esfera.velocidad.x=-2-2*rand()/(float)RAND_MAX;
 		esfera.velocidad.y=-2-2*rand()/(float)RAND_MAX;
 		puntos1++;
+		
+		char cad[1024];
+		sprintf(cad,"El Jugador 1 acaba de anotar punto, lleva un total de %d puntos \n", puntos1 );
+		write(fifo, cad, strlen(cad));
 	}
 
+      if(puntos1>=3 || puntos2>=3) exit(0);
 }
 
 void CMundo::OnKeyboardDown(unsigned char key, int x, int y)
@@ -192,4 +204,7 @@ void CMundo::Init()
 	jugador2.g=0;
 	jugador2.x1=6;jugador2.y1=-1;
 	jugador2.x2=6;jugador2.y2=1;
+	
+	//tuberia fifo 
+	fifo = open("FIFO", O_WRONLY);
 }
